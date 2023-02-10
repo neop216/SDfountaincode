@@ -1,9 +1,15 @@
 # SDfountaincode
 
 Noah Douglass
+
 John Langel
+
 Weiland Moore
+
 Lawrence Ng
+
+
+
 
 A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
 large subsets of the encoded data. This property makes them highly desirable in hostile network environments, and thus
