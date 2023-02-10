@@ -1,9 +1,15 @@
 # SDfountaincode
 
 Noah Douglass
+
 John Langel
+
 Weiland Moore
+
 Lawrence Ng
+
+
+Created as a senior design capstone project at Cleveland State University under the guidance of faculty advisor Dr. Sanchita Mal-Sarkar and industry advisor Dr. Rachel Dudukovich of NASA Glenn Research Center.
 
 A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
 large subsets of the encoded data. This property makes them highly desirable in hostile network environments, and thus
@@ -19,4 +25,4 @@ implement those methods.
 https://en.wikipedia.org/wiki/Luby_transform_code
 
 More advanced and efficient subclasses of fountain code exist, such as Raptor codes, but as most of our research has
-been focused on LT fountain codes, the prototype software below uses their methodology instead.
+been focused on LT fountain codes, the prototype software uses their methodology instead.
