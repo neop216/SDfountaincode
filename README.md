@@ -9,7 +9,7 @@ Weiland Moore
 Lawrence Ng
 
 
-
+Created as a senior design capstone project at Cleveland State University under the guidance of faculty advisor Dr. Sanchita Mal-Sarkar and industry advisor Dr. Rachel Dudukovich of NASA Glenn Research Center.
 
 A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
 large subsets of the encoded data. This property makes them highly desirable in hostile network environments, and thus
