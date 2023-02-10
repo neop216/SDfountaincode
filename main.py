@@ -19,6 +19,14 @@ https://en.wikipedia.org/wiki/Luby_transform_code
 
 More advanced and efficient subclasses of fountain code exist, such as Raptor codes, but as most of our research has
 been focused on LT fountain codes, the prototype software below uses their methodology instead.
+
+Implementations studied during research for this project those by:
+    Anson Rosenthal (anrosent): https://github.com/anrosent/LT-Code
+    Darren (darrenldl): https://github.com/darrenldl/ocaml-lt-code
+    Spriteware: https://github.com/Spriteware/lt-codes-python
+    Roberto Francescon (obolo) and Dominik Danelski (Etua): https://github.com/obolo/freeRaptor
+    Daniel Chang (mwdchang): https://github.com/mwdchang/fountain-code
+    Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
 """
 
 BUNDLE_BYTES = 128  # Number of bytes per bundle created from the original data
@@ -41,7 +49,7 @@ def encode(bundles, original_size, encoded_size):
     # Start by obtaining an ideal soliton probability distribution that will be used to generate xor neighbor values
     # later.
     ideal_dist = ideal_soliton(original_size)
-    rand_sequence = list(range(0, original_size + 1))
+    sequence = list(range(0, original_size + 1))
 
     # Encode data by cycling through our bundles and XORing them together to create encoded bundles. These bundles
     # consist of an index number "index", the XORing result "value", an empty list of "components" to be used later,
@@ -57,7 +65,7 @@ def encode(bundles, original_size, encoded_size):
         if i == 0:
             cur_xor_neighbors = 1
         else:
-            cur_xor_neighbors = random.choices(rand_sequence, ideal_dist)[0]
+            cur_xor_neighbors = random.choices(sequence, ideal_dist)[0]
 
         # This is a FANTASTIC way to avoid having to transport the lists of components used to create each block!
         # Random.seed(i) will lead the random.sample to ALWAYS select the same "random" numbers from the range desired
@@ -131,9 +139,9 @@ def decode(encoded_data, original_size):
 def main():
     input_file = open("infile.txt", "rb")
     # Using a text file as input instead of a numpy array because LT code implementation doesn't seem to play nicely
-    # with bundles with values that are different lengths of bits. We could try to pad numbers in a numpy array in a way
-    # that would simulate the division of an actual hunk of data, but I think this is actually more accurate anyway!
-    # Also, opening the file in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
+    # with the numpy arrays of random integers. Using files seems to be a popular method of simulating a data stream
+    # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
+    # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
     input_file_name = input_file.name
     data = []
 
