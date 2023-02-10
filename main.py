@@ -6,7 +6,7 @@ import numpy as np
 """
 RATIONALE: A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
 large subsets of the encoded data. This property makes them highly desirable in hostile network environments, and thus
-perfect for use with NASA's HDTN.
+perfect for use in space.
 
 https://en.wikipedia.org/wiki/Fountain_code
 
