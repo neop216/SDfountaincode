@@ -25,4 +25,4 @@ implement those methods.
 https://en.wikipedia.org/wiki/Luby_transform_code
 
 More advanced and efficient subclasses of fountain code exist, such as Raptor codes, but as most of our research has
-been focused on LT fountain codes, the prototype software below uses their methodology instead.
+been focused on LT fountain codes, the prototype software uses their methodology instead.
