@@ -29,9 +29,9 @@ Implementations studied during research for this project those by:
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
 """
 
-BUNDLE_BYTES = 8  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
+BUNDLE_BYTES = 4096 # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
 REDUNDANCY = 2  # Scalar for the encoded data's size
-TRANSMISSION_LOSS_PERCENTAGE = 20
+TRANSMISSION_LOSS_PERCENTAGE = 37.49
 
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing
@@ -212,9 +212,8 @@ def main():
     sent_encoded_file.flush()
     sent_encoded_file.close()
 
-    # Simulate data loss by removing TRANSMISSION_LOSS_PERCENTAGE% of the encoded data. Works as long as
-    # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5% for redundancy 2. Could potentially artificially introduce
-    # transmission loss to decrease transmitted filesize. More research required.
+    # Simulate data loss by removing TRANSMISSION_LOSS_PERCENTAGE% of the encoded data. Could potentially artificially
+    # introduce transmission loss to decrease transmitted filesize. More research required.
     if TRANSMISSION_LOSS_PERCENTAGE > 0:
         encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
 
