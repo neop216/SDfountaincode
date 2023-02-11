@@ -29,7 +29,7 @@ Implementations studied during research for this project those by:
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
 """
 
-BUNDLE_BYTES = 512  # Number of bytes per bundle created from the original data. Must be a power of 2
+BUNDLE_BYTES = 8  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
 REDUNDANCY = 2  # Scalar for the encoded data's size
 TRANSMISSION_LOSS_PERCENTAGE = 0
 
