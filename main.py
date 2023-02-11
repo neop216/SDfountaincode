@@ -31,7 +31,7 @@ Implementations studied during research for this project those by:
 
 BUNDLE_BYTES = 128  # Number of bytes per bundle created from the original data
 REDUNDANCY = 2  # Scalar for the encoded data's size
-
+TRANSMISSION_LOSS_PERCENTAGE = 37.49
 
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing
@@ -131,6 +131,7 @@ def decode(encoded_data, original_size):
                     for other_bundle in encoded_data:
                         if other_bundle["to_solve"] > 1 and bundle_index in other_bundle["components"]:
                             other_bundle["value"] = cur_value ^ other_bundle["value"]
+                            other_bundle["components"].remove(bundle_index)
                             other_bundle["to_solve"] -= 1
 
     return decoded_data
@@ -170,6 +171,21 @@ def main():
     print(f"ORIGINAL DATA: \n\n\n{data}")
     encoded_data = encode(data, len(data), REDUNDANCY * len(data))  # Redundancy is introduced here
     print(f"ENCODED DATA: \n\n\n{encoded_data}")
+
+    # Simulate data loss by removing TRANSMISSION_LOSS_PERCENTAGE% of the encoded data. Works as long as
+    # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5.
+    encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
+
+    '''
+    Create a file to show what the encoded data looks like! Optional, but interesting.
+    
+    encoded_file = open("encodefile.txt", "wb")
+
+    for i, bundle in enumerate(encoded_data):
+        if i < len(encoded_data) - 1:
+            encoded_file.write(bundle["value"])
+    '''
+
     decoded_data = decode(encoded_data, len(data))
     print(f"DECODED DATA: \n\n\n{decoded_data}")
 
