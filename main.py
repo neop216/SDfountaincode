@@ -80,11 +80,11 @@ def encode(bundles, original_size, encoded_size):
         # https://observablehq.com/@aman-tiwari/fountain-codes
         seed = i
         random.seed(seed)
-        encoded_subset = random.sample(range(original_size), cur_xor_neighbors)
+        components = random.sample(range(original_size), cur_xor_neighbors)
 
-        cur_encode = bundles[encoded_subset[0]]
+        cur_encode = bundles[components[0]]
         for j in range(1, cur_xor_neighbors):
-            cur_encode = cur_encode ^ bundles[encoded_subset[j]]
+            cur_encode = cur_encode ^ bundles[components[j]]
 
         encoded_data.append(dict(seed=seed, value=cur_encode, components=[], to_solve=cur_xor_neighbors))
 
