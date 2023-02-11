@@ -171,6 +171,8 @@ def main():
         byte_array = np.frombuffer(byte_array, dtype=np.uint64)  # Also, maybe use np.uint32 if x86 systems? Ask Rachel
         data.append(byte_array)
 
+    input_file.close()
+
     # For debugging purposes, we can output all our data sets. Could be added to a verbose option in the future.
     print(f"ORIGINAL DATA: \n{data}")
     encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduced here
@@ -183,6 +185,9 @@ def main():
     for i, bundle in enumerate(encoded_data):
         if i < len(encoded_data) - 1:
             sent_encoded_file.write(bundle["value"])
+
+    sent_encoded_file.flush()
+    sent_encoded_file.close()
 
     # Simulate data loss by removing TRANSMISSION_LOSS_PERCENTAGE% of the encoded data. Works as long as
     # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5% for redundancy 2. Could potentially artificially introduce
@@ -197,6 +202,9 @@ def main():
     for i, bundle in enumerate(encoded_data):
         if i < len(encoded_data) - 1:
             recv_encoded_file.write(bundle["value"])
+
+    recv_encoded_file.flush()
+    recv_encoded_file.close()
 
     decoded_data = decode(encoded_data, len(data))
     print(f"\n\n\nDECODED DATA: \n{decoded_data}")
@@ -226,6 +234,8 @@ def main():
     padded_bundle = bytes(decoded_data)
     output_file.write(padded_bundle[:os.path.getsize(input_file_name) % BUNDLE_BYTES])
 
+    output_file.flush()
+    output_file.close()
 
 if __name__ == "__main__":  # Was told to do this in CIS 390? Not sure why
     main()
