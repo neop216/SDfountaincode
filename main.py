@@ -75,7 +75,8 @@ def encode(bundles, original_size, encoded_size):
         # Random.seed(i) will lead the random.sample to ALWAYS select the same "random" numbers from the range desired
         # in the same order for any given seed i. If we assign each encoded block a seed, we can reverse the process
         # during decoding by using the same random seeds! Idea discovered in ObservableHQ article "Fountain Codes" by
-        # Aman Tiwari.
+        # Aman Tiwari. Python does not have a method of randomly generating seeds other than using the unix timestamp,
+        # which is still too slow to avoid duplicate seeds, so we simply use our loop index i.
         # https://observablehq.com/@aman-tiwari/fountain-codes
         seed = i
         random.seed(seed)
