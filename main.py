@@ -117,9 +117,9 @@ def decode(encoded_data, original_size):
         for i, bundle in enumerate(encoded_data):
             if bundle["to_solve"] == 1:
                 solved += 1
-                bundle_index = next(iter(bundle["components"]))
+                component_index = bundle["components"][0]
                 encoded_data.pop(i)
-                cur_decode = decoded_data[bundle_index]
+                cur_decode = decoded_data[component_index]
 
                 # Encoding results in some elements of decoded_data being ints and others being numpy arrays. Here, we
                 # would only need the sum of the numpy array as a way to generate an integer to represent it. We're
@@ -130,13 +130,13 @@ def decode(encoded_data, original_size):
 
                 if cur_decode < 0:
                     cur_value = bundle["value"]
-                    decoded_data[bundle_index] = cur_value
+                    decoded_data[component_index] = cur_value
                     solved += 1
 
                     for other_bundle in encoded_data:
-                        if other_bundle["to_solve"] > 1 and bundle_index in other_bundle["components"]:
+                        if other_bundle["to_solve"] > 1 and component_index in other_bundle["components"]:
                             other_bundle["value"] = cur_value ^ other_bundle["value"]
-                            other_bundle["components"].remove(bundle_index)
+                            other_bundle["components"].remove(component_index)
                             other_bundle["to_solve"] -= 1
 
     return decoded_data
