@@ -29,9 +29,9 @@ Implementations studied during research for this project those by:
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
 """
 
-BUNDLE_BYTES = 128  # Number of bytes per bundle created from the original data
+BUNDLE_BYTES = 512  # Number of bytes per bundle created from the original data. Must be a power of 2
 REDUNDANCY = 2  # Scalar for the encoded data's size
-TRANSMISSION_LOSS_PERCENTAGE = 37.49
+TRANSMISSION_LOSS_PERCENTAGE = 0
 
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing
@@ -168,9 +168,9 @@ def main():
         data.append(byte_array)
 
     # For debugging purposes, we can output all our data sets. Could be added to a verbose option in the future.
-    print(f"ORIGINAL DATA: \n\n\n{data}")
-    encoded_data = encode(data, len(data), REDUNDANCY * len(data))  # Redundancy is introduced here
-    print(f"ENCODED DATA: \n\n\n{encoded_data}")
+    print(f"ORIGINAL DATA: \n{data}")
+    encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduced here
+    print(f"\n\n\nENCODED DATA: \n{encoded_data}")
 
     # Simulate data loss by removing TRANSMISSION_LOSS_PERCENTAGE% of the encoded data. Works as long as
     # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5.
@@ -187,7 +187,7 @@ def main():
     '''
 
     decoded_data = decode(encoded_data, len(data))
-    print(f"DECODED DATA: \n\n\n{decoded_data}")
+    print(f"\n\n\nDECODED DATA: \n{decoded_data}")
 
     # Calculate how many inconsistencies exist between the original and decoded bundles.
 
