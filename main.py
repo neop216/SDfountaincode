@@ -31,7 +31,7 @@ Implementations studied during research for this project those by:
 
 BUNDLE_BYTES = 8  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
 REDUNDANCY = 2  # Scalar for the encoded data's size
-TRANSMISSION_LOSS_PERCENTAGE = 37.5
+TRANSMISSION_LOSS_PERCENTAGE = 0
 
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing
@@ -181,7 +181,8 @@ def main():
             sent_encoded_file.write(bundle["value"])
 
     # Simulate data loss by removing TRANSMISSION_LOSS_PERCENTAGE% of the encoded data. Works as long as
-    # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5.
+    # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5. Could potentially artificially introduce transmission loss to
+    # decrease transmitted filesize. More research required.
     encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
 
     # Create a file to show what the received encoded data looks like! Optional, but interesting.
