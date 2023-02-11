@@ -2,6 +2,7 @@ import os
 import random
 import math
 import numpy as np
+from time import time_ns
 
 """
 RATIONALE: A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
@@ -72,18 +73,19 @@ def encode(bundles, original_size, encoded_size):
 
         # This is a FANTASTIC way to avoid having to transport the lists of components used to create each block!
         # Random.seed(i) will lead the random.sample to ALWAYS select the same "random" numbers from the range desired
-        # in the same order for any given seed i. If we assign each encoded block an index and use that index as our
-        # random seed, we can reverse the process during decoding by using the same random seeds!
-        # Idea discovered in ObservableHQ article "Fountain Codes" by Aman Tiwari.
+        # in the same order for any given seed i. If we assign each encoded block a seed, we can reverse the process
+        # during decoding by using the same random seeds! Idea discovered in ObservableHQ article "Fountain Codes" by
+        # Aman Tiwari.
         # https://observablehq.com/@aman-tiwari/fountain-codes
-        random.seed(i)
+        seed = i
+        random.seed(seed)
         encoded_subset = random.sample(range(original_size), cur_xor_neighbors)
 
         cur_encode = bundles[encoded_subset[0]]
         for j in range(1, cur_xor_neighbors):
             cur_encode = cur_encode ^ bundles[encoded_subset[j]]
 
-        encoded_data.append(dict(index=i, value=cur_encode, components=[], to_solve=cur_xor_neighbors))
+        encoded_data.append(dict(seed=seed, value=cur_encode, components=[], to_solve=cur_xor_neighbors))
 
     return encoded_data
 
@@ -97,7 +99,7 @@ def decode(encoded_data, original_size):
     for bundle in encoded_data:
         # "Abuse" random.seed as discussed in the encode method and fill each encoded block's components key with its
         # actual components.
-        random.seed(bundle["index"])
+        random.seed(bundle["seed"])
         bundle["components"] = random.sample(range(original_size), bundle["to_solve"])
 
     # Iterate through the encoded_data. If the current encoded bundle has 1 left to solve (to_solve), it does not need
