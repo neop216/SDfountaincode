@@ -163,6 +163,7 @@ def main():
     # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
     # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
     input_file_name = input_file.name
+    _, extension = os.path.splitext(os.path.abspath(input_file.name))
     data = []
 
     # Read the text file into bundles of predefined size specified by BUNDLE_BYTES above
@@ -200,7 +201,7 @@ def main():
     '''
 
     # Create a file to show what the sent encoded data looks like! Optional, but interesting.
-    sent_encoded_file = open("sent_encodefile.txt", "wb")
+    sent_encoded_file = open("sent_encodefile", "wb")
 
     for i, bundle in enumerate(encoded_data):
         if i < len(encoded_data) - 1:
@@ -216,7 +217,7 @@ def main():
         encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
 
     # Create a file to show what the received encoded data looks like! Optional, but interesting.
-    recv_encoded_file = open("recv_encodefile.txt", "wb")
+    recv_encoded_file = open("recv_encodefile", "wb")
 
     for i, bundle in enumerate(encoded_data):
         if i < len(encoded_data) - 1:
@@ -241,7 +242,7 @@ def main():
     print(f"\n\nResults: {errors * 100 / len(data)}% data loss with {errors} errors")
 
     # To more easily show that decoding was successful, recompile the decoded_data bundles into an output file.
-    output_file = open("outfile.txt", "wb")
+    output_file = open("outfile" + extension, "wb")
 
     for i, bundle in enumerate(decoded_data):
         if i < len(decoded_data) - 1:

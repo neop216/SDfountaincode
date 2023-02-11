@@ -1,3 +1,5 @@
-/outfile.txt
-/recv_encodefile.txt
-/sent_encodefile.txt
+*
+!main.py
+!infile.txt
+!README.md
+
