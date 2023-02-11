@@ -49,10 +49,10 @@ def encode(bundles, original_size, encoded_size):
     # Start by obtaining an ideal soliton probability distribution that will be used to generate xor neighbor values
     # later.
     ideal_dist = ideal_soliton(original_size)
-    sequence = []
+    xor_possibilities = []
 
     for i in range(0, original_size + 1):
-        sequence.append(i)
+        xor_possibilities.append(i)
 
     # Encode data by cycling through our bundles and XORing them together to create encoded bundles. These bundles
     # consist of an index number "index", the XORing result "value", an empty list of "components" to be used later,
@@ -68,14 +68,13 @@ def encode(bundles, original_size, encoded_size):
         if i == 0:
             cur_xor_neighbors = 1
         else:
-            cur_xor_neighbors = random.choices(sequence, ideal_dist)[0]
+            cur_xor_neighbors = random.choices(xor_possibilities, ideal_dist)[0]
 
         # This is a FANTASTIC way to avoid having to transport the lists of components used to create each block!
         # Random.seed(i) will lead the random.sample to ALWAYS select the same "random" numbers from the range desired
         # in the same order for any given seed i. If we assign each encoded block an index and use that index as our
         # random seed, we can reverse the process during decoding by using the same random seeds!
-        # Idea discovered in ObservableHQ article "Fountain Codes" by Aman Tiwari. Tiwari's implementation passes the
-        # randomly generated seed with each encoded block, but passing the smaller index value will be more efficient.
+        # Idea discovered in ObservableHQ article "Fountain Codes" by Aman Tiwari.
         # https://observablehq.com/@aman-tiwari/fountain-codes
         random.seed(i)
         encoded_subset = random.sample(range(original_size), cur_xor_neighbors)
