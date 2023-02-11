@@ -86,7 +86,7 @@ def encode(bundles, original_size, encoded_size):
         for j in range(1, cur_xor_neighbors):
             cur_encode = cur_encode ^ bundles[components[j]]
 
-        encoded_data.append(dict(seed=seed, value=cur_encode, components=[], to_solve=cur_xor_neighbors))
+        encoded_data.append(dict(seed=seed, value=cur_encode, components=[], xor_neighbors=cur_xor_neighbors))
 
     return encoded_data
 
@@ -101,21 +101,21 @@ def decode(encoded_data, original_size):
         # "Abuse" random.seed as discussed in the encode method and fill each encoded block's components key with its
         # actual components.
         random.seed(bundle["seed"])
-        bundle["components"] = random.sample(range(original_size), bundle["to_solve"])
+        bundle["components"] = random.sample(range(original_size), bundle["xor_neighbors"])
 
-    # Iterate through the encoded_data. If the current encoded bundle has 1 left to solve (to_solve), it does not need
-    # to wait for any other bundles to be processed before it can be considered solved. If the decoded_data bundle we're
-    # looking at is unsolved, its value is added to the decoded_data at the appropriate index. Afterwards, we iterate
-    # through the rest of the encoded_data bundles to see if any of them used the solved decoded_data as a component.
-    # Upon finding such a bundle, we can't assign any new decoded_data values, but we can update the bundle's value
-    # by XORing it with the newly-decoded bundle's value. Doing so bring the bundle one step closer to being decoded,
-    # so its "to_solve" value is decreased by one. This process is repeated until all encoded blocks are solved!
+    # Iterate through the encoded_data. If the current encoded bundle has 1 component left, it does not need to wait for
+    # any other bundles to be processed before it can be considered solved. If the decoded_data bundle we're looking at
+    # is unsolved, its value is added to the decoded_data at the appropriate index. Afterwards, we iterate through the
+    # rest of the encoded_data bundles to see if any of them used the solved decoded_data as a component. Upon finding
+    # such a bundle, we can't assign any new decoded_data values, but we can update the bundle's value by XORing it with
+    # the newly-decoded bundle's value. The component can then be considered to have been "removed" from the encoded
+    # bundle, so we remove it from the bundle's component list.
 
     solved = -1  # Python doesn't have "do-while", so we need to initialize this solved variable here. Can't use "None".
     while solved != 0:
         solved = 0
         for i, bundle in enumerate(encoded_data):
-            if bundle["to_solve"] == 1:
+            if len(bundle["components"]) == 1:
                 solved += 1
                 component_index = bundle["components"][0]
                 encoded_data.pop(i)
@@ -134,10 +134,9 @@ def decode(encoded_data, original_size):
                     solved += 1
 
                     for other_bundle in encoded_data:
-                        if other_bundle["to_solve"] > 1 and component_index in other_bundle["components"]:
+                        if len(other_bundle["components"]) > 1 and component_index in other_bundle["components"]:
                             other_bundle["value"] = cur_value ^ other_bundle["value"]
                             other_bundle["components"].remove(component_index)
-                            other_bundle["to_solve"] -= 1
 
     return decoded_data
 
