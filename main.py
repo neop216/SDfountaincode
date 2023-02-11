@@ -2,7 +2,6 @@ import os
 import random
 import math
 import numpy as np
-from time import time_ns
 
 """
 RATIONALE: A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
@@ -100,6 +99,7 @@ def encode(bundles, original_size, encoded_size):
             cur_encode = cur_encode ^ bundles[components[j]]
 
         cantor = cantor_pairing(i, cur_xor_neighbors)
+        # Doing a second round of cantor pairing makes the number too large, unfortunately
         encoded_data.append(dict(cantor=cantor, value=cur_encode))
 
     return encoded_data
