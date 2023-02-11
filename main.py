@@ -163,6 +163,8 @@ def main():
     # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
     # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
     input_file_name = input_file.name
+    # Only really need to get the file extension in this simulated environment, data can be sent without extensions in
+    # practice
     _, extension = os.path.splitext(os.path.abspath(input_file.name))
     data = []
 
