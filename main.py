@@ -49,7 +49,10 @@ def encode(bundles, original_size, encoded_size):
     # Start by obtaining an ideal soliton probability distribution that will be used to generate xor neighbor values
     # later.
     ideal_dist = ideal_soliton(original_size)
-    sequence = list(range(0, original_size + 1))
+    sequence = []
+
+    for i in range(0, original_size + 1):
+        sequence.append(i)
 
     # Encode data by cycling through our bundles and XORing them together to create encoded bundles. These bundles
     # consist of an index number "index", the XORing result "value", an empty list of "components" to be used later,
