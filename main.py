@@ -186,7 +186,7 @@ def main():
             sent_encoded_file.write(bundle["value"])
 
     # Simulate data loss by removing TRANSMISSION_LOSS_PERCENTAGE% of the encoded data. Works as long as
-    # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5 for redundancy 2. Could potentially artificially introduce
+    # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5% for redundancy 2. Could potentially artificially introduce
     # transmission loss to decrease transmitted filesize. More research required.
     if TRANSMISSION_LOSS_PERCENTAGE > 0:
         encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
