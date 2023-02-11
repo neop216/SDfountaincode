@@ -1,2 +1,3 @@
 /outfile.txt
-/encodefile.txt
+/recv_encodefile.txt
+/sent_encodefile.txt

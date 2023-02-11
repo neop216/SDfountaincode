@@ -29,9 +29,9 @@ Implementations studied during research for this project those by:
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
 """
 
-BUNDLE_BYTES = 1024  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
+BUNDLE_BYTES = 8  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
 REDUNDANCY = 2  # Scalar for the encoded data's size
-TRANSMISSION_LOSS_PERCENTAGE = 0
+TRANSMISSION_LOSS_PERCENTAGE = 37.5
 
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing
@@ -172,19 +172,25 @@ def main():
     encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduced here
     print(f"\n\n\nENCODED DATA: \n{encoded_data}")
 
+    # Create a file to show what the sent encoded data looks like! Optional, but interesting.
+
+    sent_encoded_file = open("sent_encodefile.txt", "wb")
+
+    for i, bundle in enumerate(encoded_data):
+        if i < len(encoded_data) - 1:
+            sent_encoded_file.write(bundle["value"])
+
     # Simulate data loss by removing TRANSMISSION_LOSS_PERCENTAGE% of the encoded data. Works as long as
     # TRANSMISSION_LOSS_PERCENTAGE is less than 37.5.
     encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
 
-    '''
-    Create a file to show what the encoded data looks like! Optional, but interesting.
-    
-    encoded_file = open("encodefile.txt", "wb")
+    # Create a file to show what the received encoded data looks like! Optional, but interesting.
+
+    recv_encoded_file = open("recv_encodefile.txt", "wb")
 
     for i, bundle in enumerate(encoded_data):
         if i < len(encoded_data) - 1:
-            encoded_file.write(bundle["value"])
-    '''
+            recv_encoded_file.write(bundle["value"])
 
     decoded_data = decode(encoded_data, len(data))
     print(f"\n\n\nDECODED DATA: \n{decoded_data}")
