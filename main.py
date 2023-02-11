@@ -32,7 +32,7 @@ Implementations studied during research for this project those by:
 
 BUNDLE_BYTES = 8  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
 REDUNDANCY = 2  # Scalar for the encoded data's size
-TRANSMISSION_LOSS_PERCENTAGE = 0
+TRANSMISSION_LOSS_PERCENTAGE = 20
 
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing
@@ -45,6 +45,20 @@ def ideal_soliton(k):
         dist.append(1 / (i * (i - 1)))
     return dist
 
+def cantor_pairing(a, b):
+    # Returns a unique encoding of two integers into one so that we only have to pass one integer as a parameter instead
+    # of two.
+    # https://en.wikipedia.org/wiki/Pairing_function#Cantor_pairing_function
+    return int(0.5 * (a + b) * (a + b + 1) + b)
+
+def inverted_cantor_pairing(z):
+    # Reverses the cantor pairing function.
+    # https://en.wikipedia.org/wiki/Pairing_function#Cantor_pairing_function
+    w = math.floor((math.sqrt(8 * z + 1) - 1) / 2)
+    t = (w * w + w) / 2
+    b = z - t
+    a = w - b
+    return int(a), int(b)
 
 def encode(bundles, original_size, encoded_size):
     # Start by obtaining an ideal soliton probability distribution that will be used to generate xor neighbor values
@@ -78,15 +92,15 @@ def encode(bundles, original_size, encoded_size):
         # Aman Tiwari. Python does not have a method of randomly generating seeds other than using the unix timestamp,
         # which is still too slow to avoid duplicate seeds, so we simply use our loop index i.
         # https://observablehq.com/@aman-tiwari/fountain-codes
-        seed = i
-        random.seed(seed)
+        random.seed(i)
         components = random.sample(range(original_size), cur_xor_neighbors)
 
         cur_encode = bundles[components[0]]
         for j in range(1, cur_xor_neighbors):
             cur_encode = cur_encode ^ bundles[components[j]]
 
-        encoded_data.append(dict(seed=seed, value=cur_encode, components=[], xor_neighbors=cur_xor_neighbors))
+        cantor = cantor_pairing(i, cur_xor_neighbors)
+        encoded_data.append(dict(cantor=cantor, value=cur_encode))
 
     return encoded_data
 
@@ -100,8 +114,9 @@ def decode(encoded_data, original_size):
     for bundle in encoded_data:
         # "Abuse" random.seed as discussed in the encode method and fill each encoded block's components key with its
         # actual components.
-        random.seed(bundle["seed"])
-        bundle["components"] = random.sample(range(original_size), bundle["xor_neighbors"])
+        index, xor_neighbors = inverted_cantor_pairing(bundle["cantor"])
+        random.seed(index)
+        bundle["components"] = random.sample(range(original_size), xor_neighbors)
 
     # Iterate through the encoded_data. If the current encoded bundle has 1 component left, it does not need to wait for
     # any other bundles to be processed before it can be considered solved. If the decoded_data bundle we're looking at
@@ -175,11 +190,16 @@ def main():
 
     # For debugging purposes, we can output all our data sets. Could be added to a verbose option in the future.
     print(f"ORIGINAL DATA: \n{data}")
-    encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduced here
+    encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduce            d here
     print(f"\n\n\nENCODED DATA: \n{encoded_data}")
 
-    # Create a file to show what the sent encoded data looks like! Optional, but interesting.
+    '''
+    NOTE: Though the file we're "sending" below for demonstration purposes is the entirety of the encoded data at once,
+    in reality, we would just send multiple files consisting of one bundle each, stitching them together at the
+    receiver.
+    '''
 
+    # Create a file to show what the sent encoded data looks like! Optional, but interesting.
     sent_encoded_file = open("sent_encodefile.txt", "wb")
 
     for i, bundle in enumerate(encoded_data):
@@ -196,7 +216,6 @@ def main():
         encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
 
     # Create a file to show what the received encoded data looks like! Optional, but interesting.
-
     recv_encoded_file = open("recv_encodefile.txt", "wb")
 
     for i, bundle in enumerate(encoded_data):
@@ -229,7 +248,9 @@ def main():
             output_file.write(bundle)
 
     # Remember that we padded the end of our original file with zeros. We need to remove them. Essentially, we reverse
-    # the steps performed to read the file into a bytearray in the first place.
+    # the steps performed to read the file into a bytearray in the first place. Method of removing padding adapted from
+    # lt-codes-python by Spriteware.
+    # https://github.com/Spriteware/lt-codes-python
     decoded_data = decoded_data[-1]  # Get the last bundle in decoded_data
     padded_bundle = bytes(decoded_data)
     output_file.write(padded_bundle[:os.path.getsize(input_file_name) % BUNDLE_BYTES])
