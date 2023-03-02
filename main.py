@@ -29,9 +29,10 @@ Implementations studied during research for this project those by:
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
 """
 
-BUNDLE_BYTES = 8 # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
+BUNDLE_BYTES = 64  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
 REDUNDANCY = 2  # Scalar for the encoded data's size
-TRANSMISSION_LOSS_PERCENTAGE = 37.49
+TRANSMISSION_LOSS_PERCENTAGE = 20
+
 
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing
@@ -44,11 +45,13 @@ def ideal_soliton(k):
         dist.append(1 / (i * (i - 1)))
     return dist
 
+
 def cantor_pairing(a, b):
     # Returns a unique encoding of two integers into one so that we only have to pass one integer as a parameter instead
     # of two.
     # https://en.wikipedia.org/wiki/Pairing_function#Cantor_pairing_function
     return int(0.5 * (a + b) * (a + b + 1) + b)
+
 
 def inverted_cantor_pairing(z):
     # Reverses the cantor pairing function.
@@ -58,6 +61,7 @@ def inverted_cantor_pairing(z):
     b = z - t
     a = w - b
     return int(a), int(b)
+
 
 def encode(bundles, original_size, encoded_size):
     # Start by obtaining an ideal soliton probability distribution that will be used to generate xor neighbor values
@@ -260,5 +264,6 @@ def main():
     output_file.flush()
     output_file.close()
 
-if __name__ == "__main__":  # Was told to do this in CIS 390? Not sure why
+
+if __name__ == "__main__":
     main()
