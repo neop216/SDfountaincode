@@ -27,6 +27,8 @@ Implementations studied during research for this project those by:
     Roberto Francescon (obolo) and Dominik Danelski (Etua): https://github.com/obolo/freeRaptor
     Daniel Chang (mwdchang): https://github.com/mwdchang/fountain-code
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
+    
+TODO: ARM-Based weirdness? Also introduction of arguments
 """
 
 BUNDLE_BYTES = 64  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
