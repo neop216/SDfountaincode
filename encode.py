@@ -32,7 +32,9 @@ Implementations studied during research for this project those by:
     Daniel Chang (mwdchang): https://github.com/mwdchang/fountain-code
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
 
-TODO: ARM-Based weirdness? Also introduction of arguments would be nice.
+ASSUMPTIONS:
+This encoder assumes that HDTN has a way of designating ordering information with bundles when it creates them.
+This encoder does not add any ordering information in its current iteration.
 """
 
 BUNDLE_BYTES = 1000  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
@@ -98,7 +100,7 @@ def encode(bundles, original_size, encoded_size):
 
 def main():
     if len(sys.argv) < 2:
-        print("usage: encode.py (infile)")
+        print("usage: encode.py (filename)")
         exit()
 
     try:
@@ -145,20 +147,17 @@ def main():
     encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduce            d here
     #print(f"\n\n\nENCODED DATA: \n{encoded_data}")
 
-    for filename in os.listdir("encodefiles"):
-        os.remove("encodefiles/" + filename)
+    with open("temp_encodefile", "wb") as f:
+        for i, bundle in enumerate(encoded_data):
+            if i < len(encoded_data):
+                bundle["value"] = bundle["value"].tolist()
+        to_write = json.dumps(encoded_data).encode()
+        f.write(to_write)
 
-    for i, bundle in enumerate(encoded_data):
-        if i < len(encoded_data):
-            bundle["value"] = bundle["value"].tolist()
-            to_write = json.dumps(bundle).encode()
-            with open("temp_encodefile", "wb") as f:
-                f.write(to_write)
-            with open("temp_encodefile", "rb") as uncompressed_file:
-                with gzip.open("encodefiles/encodefile_" + str(i) + ".gz", "wb") as compressed_file:
-                    shutil.copyfileobj(uncompressed_file, compressed_file)
-            os.remove("temp_encodefile")
-
+    with open("temp_encodefile", "rb") as uncompressed_file:
+        with gzip.open("encodefile.gz", "wb") as compressed_file:
+            shutil.copyfileobj(uncompressed_file, compressed_file)
+    os.remove("temp_encodefile")
 
 if __name__ == "__main__":
     main()

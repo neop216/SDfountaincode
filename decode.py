@@ -84,30 +84,30 @@ def decode(encoded_data, original_size):
 
 def main():
     if len(sys.argv) < 2:
-        print("usage: decode.py (directory)")
+        print("usage: decode.py (filename)")
         exit(-1)
 
     if not os.path.exists(sys.argv[1]):
-        print(f"directory {sys.argv[1]} does not exist")
+        print(f"file {sys.argv[1]} does not exist")
         exit(1)
 
     # Using a text file as input instead of a numpy array because LT code implementation doesn't seem to play nicely
     # with the numpy arrays of random integers. Using files seems to be a popular method of simulating a data stream
     # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
     # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
-    # Only really need to get the file extension in this simulated environment, data can be sent without extensions in
-    # practice
     data = []
 
     # Read the text file into bundles of predefined size specified by BUNDLE_BYTES above
-    for filename in os.listdir(sys.argv[1]):
-        with gzip.open(sys.argv[1] + "/" + filename, "rb") as f:
-            bundle = f.read()
 
-        # Json library convert string dictionary to real dictionary type.
-        # Double quotes is standard format for json
-        bundle = json.loads(bundle)
+    with gzip.open(sys.argv[1], "rb") as f:
+        bundles = f.read()
 
+    # Json library convert string dictionary to real dictionary type.
+    # Double quotes is standard format for json
+    bundles = bundles.decode()
+    bundles = json.loads(bundles)
+
+    for bundle in bundles:
         bundle["value"] = np.array(bundle["value"], dtype=np.uint64)
         data.append(bundle)
 
