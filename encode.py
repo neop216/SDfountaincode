@@ -39,8 +39,8 @@ This encoder does not add any ordering information in its current iteration.
 
 BUNDLE_BYTES = 1000  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
 REDUNDANCY = 2  # Scalar for the encoded data's size
-#TRANSMISSION_LOSS_PERCENTAGE = 56.25
-TRANSMISSION_LOSS_PERCENTAGE = 0
+TRANSMISSION_LOSS_PERCENTAGE = 20
+#TRANSMISSION_LOSS_PERCENTAGE = 0
 
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing

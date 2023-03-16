@@ -60,7 +60,7 @@ def decode(encoded_data, original_size):
                 component_index = bundle["components"][0]
                 encoded_data.pop(i)
 
-                if component_index > len(decoded_data) + 1:
+                if component_index >= len(decoded_data):
                     for i in range(component_index - len(decoded_data) + 1):
                         decoded_data.append(-1)
 
