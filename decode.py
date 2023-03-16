@@ -1,5 +1,4 @@
 import os
-import math
 import numpy as np
 import sys
 import json
@@ -42,7 +41,7 @@ def decode(encoded_data, original_size):
     # First, initialize the decoded_data list as a list of -1s with length equal to the number of original bundles.
     # Since we XORed unsigned integers together, the values of encoded blocks should NEVER be negative. Thus,
     # initializing the decoded_data list with -1s gives an easy way to check whether an original bundle has been solved.
-    decoded_data = original_size * [-1]
+    decoded_data = []
 
     # Iterate through the encoded_data. If the current encoded bundle has 1 component left, it does not need to wait for
     # any other bundles to be processed before it can be considered solved. If the decoded_data bundle we're looking at
@@ -60,7 +59,13 @@ def decode(encoded_data, original_size):
                 solved += 1
                 component_index = bundle["components"][0]
                 encoded_data.pop(i)
+
+                if component_index > len(decoded_data) + 1:
+                    for i in range(component_index - len(decoded_data) + 1):
+                        decoded_data.append(-1)
+
                 cur_decode = decoded_data[component_index]
+
 
                 # Encoding results in some elements of decoded_data being ints and others being numpy arrays. Here, we
                 # would only need the sum of the numpy array as a way to generate an integer to represent it. We're
