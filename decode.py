@@ -3,6 +3,7 @@ import numpy as np
 import sys
 import json
 import gzip
+import re
 
 """
 RATIONALE: A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
@@ -105,14 +106,13 @@ def main():
     # Read the text file into bundles of predefined size specified by BUNDLE_BYTES above
 
     with gzip.open(sys.argv[1], "rb") as f:
-        bundles = f.read()
+        bundle_list = f.read()
 
-    # Json library convert string dictionary to real dictionary type.
-    # Double quotes is standard format for json
-    bundles = bundles.decode()
-    bundles = json.loads(bundles)
+    bundle_list = bundle_list.decode()
+    bundles = re.findall(r'\{.*?\}', bundle_list)
 
     for bundle in bundles:
+        bundle = json.loads(bundle)
         bundle["value"] = np.array(bundle["value"], dtype=np.uint64)
         data.append(bundle)
 
