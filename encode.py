@@ -146,15 +146,23 @@ def main():
     encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduce            d here
     #print(f"\n\n\nENCODED DATA: \n{encoded_data}")
 
+    # Simulate data loss, if necessary
     if TRANSMISSION_LOSS_PERCENTAGE > 0:
         encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
 
+    # Write each bundle to the temporary output file. Since HDTN will be fragmenting this encoded file into bundles,
+    # we should not write these bundles to the file all at once in a unified data structure like a list.
+    # As long as each bundle is surrounded by curly braces {}, the decoder can recover them using regex.
     with open("temp_encodefile", "wb") as f:
-        for i, bundle in enumerate(encoded_data):
+        for bundle in encoded_data:
+            # For the purposes of reading these bundles later, we should write them with lists instead of numpy arrays.
+            # The lists are converted back into numpy arrays by the decoder.
             bundle["value"] = bundle["value"].tolist()
             to_write = json.dumps(bundle).encode()
             f.write(to_write)
 
+    # Temporary method of data compression. Another method may be more desirable as design constraints are enumerated.
+    # Also, delete the temporary output file after using it since it is not needed.
     with open("temp_encodefile", "rb") as uncompressed_file:
         with gzip.open("encodefile.gz", "wb") as compressed_file:
             shutil.copyfileobj(uncompressed_file, compressed_file)

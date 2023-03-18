@@ -29,8 +29,6 @@ Implementations studied during research for this project those by:
     Roberto Francescon (obolo) and Dominik Danelski (Etua): https://github.com/obolo/freeRaptor
     Daniel Chang (mwdchang): https://github.com/mwdchang/fountain-code
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
-
-TODO: ARM-Based weirdness? Also introduction of arguments would be nice.
 """
 
 BUNDLE_BYTES = 1000  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
@@ -97,13 +95,10 @@ def main():
         print(f"file {sys.argv[1]} does not exist")
         exit(1)
 
-    # Using a text file as input instead of a numpy array because LT code implementation doesn't seem to play nicely
-    # with the numpy arrays of random integers. Using files seems to be a popular method of simulating a data stream
-    # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
-    # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
-    data = []
-
-    # Read the text file into bundles of predefined size specified by BUNDLE_BYTES above
+    # Each bundle from the encoded data file is already the correct bundle size, so we do not need to worry about
+    # each segment read below being the same size. The entire file is read into a string, which is then decoded from
+    # bytes and split into individual bundles using regex. Each individual bundle is still a string, so we load them
+    # into dictionaries.
 
     with gzip.open(sys.argv[1], "rb") as f:
         bundle_list = f.read()
@@ -111,22 +106,27 @@ def main():
     bundle_list = bundle_list.decode()
     bundles = re.findall(r'\{.*?\}', bundle_list)
 
+    data = []
     for bundle in bundles:
         bundle = json.loads(bundle)
+
+        # Bundle values were stored as lists instead of numpy arrays so that the decoder can read them. Now that they
+        # have been parsed, they can be converted back into numpy arrays.
         bundle["value"] = np.array(bundle["value"], dtype=np.uint64)
         data.append(bundle)
 
     decoded_data = decode(data, round(len(data) / REDUNDANCY))
     # print(f"\n\n\nDECODED DATA: \n{decoded_data}")
 
-    # To more easily show that decoding was successful, recompile the decoded_data bundles into an output file.
+    # Recompile the decoded_data bundles into an output file.
 
     with open("temp_outfile", "wb") as f:
-        for i, bundle in enumerate(decoded_data):
-            if i < len(decoded_data):
-                f.write(bundle)
+        for bundle in decoded_data:
+            f.write(bundle)
 
-    # Remember that we padded the end of our original file with zeros.
+    # Remember that we padded the end of our original file with zeros, so we strip them off. A more intelligent
+    # solution would involve making sure we aren't stripping off intended nulls terminating the original data,
+    # but this works as a proof of concept.
 
     with open("outfile.txt", "wb") as output_file:
         with open("temp_outfile", "rb") as f:
