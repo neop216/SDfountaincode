@@ -58,7 +58,7 @@ To make the encoder and decoder runnable from the command line, ensure that both
 	
 ## Encoder Arguments ##
 ```
-encode.py [-h] [-b BYTES] [-r REDUNDANCY] [-tlp TRANSMISSION_LOSS_PERCENTAGE] [--x86] filename
+encode.py filename [-h] [-b BYTES] [-r REDUNDANCY] [-tlp TRANSMISSION_LOSS_PERCENTAGE] [--x86]
 ```
 
 * `filename` - Input file path, REQUIRED
@@ -70,7 +70,7 @@ encode.py [-h] [-b BYTES] [-r REDUNDANCY] [-tlp TRANSMISSION_LOSS_PERCENTAGE] [-
 
 ## Decoder Arguments ##
 ```
-decode.py [-h] [--x86] filename
+decode.py filename [-h] [--x86]
 ```
 
 * `filename` - Input file path, REQUIRED
