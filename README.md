@@ -64,7 +64,7 @@ encode.py filename [-h] [-b BYTES] [-r REDUNDANCY] [-tlp TRANSMISSION_LOSS_PERCE
 * `filename` - Input file path, REQUIRED
 * `-h, --help` - Shows this information and exits
 * `-b BYTES, --bytes BYTES` - Number of bytes per bundle >= 8
-* `-r REDUNDANCY, --redundancy REDUNDNACY` - Scalar for the encoded data's size > 1.0
+* `-r REDUNDANCY, --redundancy REDUNDNACY` - Scalar for the encoded data's size >= 1.3
 * `-tlp TRANSMISSION_LOSS_PERCENTAGE, --transmission-loss-percentage TRANSMISSION_LOSS_PERCENTAGE` - Used to simulate transmission loss, 0.0 to 100.0 inclusive
 * `--x86` - Forces the use of 32-bit unsigned int datatype for the encoded data buffer for 32-bit systems
 

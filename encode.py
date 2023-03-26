@@ -40,8 +40,6 @@ This encoder assumes that HDTN has a way of designating ordering information wit
 This encoder does not add any ordering information in its current iteration.
 """
 
-TRANSMISSION_LOSS_PERCENTAGE = 0
-
 def ideal_soliton(k):
     # The soliton probability distributions are designed to account for transmission errors by intelligently introducing
     # redundancy. Michael Luby, the namesake of Luby transform (LT) codes, is also the mastermind behind this algorithm.
@@ -96,7 +94,7 @@ def main():
     parser.add_argument("filename", help="Input file path")
     parser.add_argument("-b", "--bytes", help="Number of bytes per bundle >= 8", default=1000, type=int)
     parser.add_argument("-r", "--redundancy",
-                        help="Scalar for the encoded data's size > 1.0; higher values will increase redundancy as well as file size",
+                        help="Scalar for the encoded data's size >= 1.3; higher values will increase redundancy as well as file size",
                         default=2.0, type=float)
     parser.add_argument("-tlp", "--transmission-loss-percentage", help="Simulate transmission loss; percentage from 0 to 100",
                         default=0.0, type=float)
