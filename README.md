@@ -50,14 +50,16 @@ Usage
 ## Executability ##
 To make the encoder and decoder runnable from the command line, ensure that both scripts are executable.
 * On Windows, the scripts will be executable by running them as follows:
-	* `python3 /path/to/encoder`
-	* `python3 /path/to/decoder`
+	* ```python3 /path/to/encoder```
+	* ```python3 /path/to/decoder```
 * On Linux, add the executable permission to each file:
-	* `chmod +x /path/to/encoder`
-	* `chmod +x /path/to/decoder`
+	* ```chmod +x /path/to/encoder```
+	* ```chmod +x /path/to/decoder```
 	
 ## Encoder Arguments ##
-`encode.py [-h] [-b BYTES] [-r REDUNDANCY] [-tlp TRANSMISSION_LOSS_PERCENTAGE] [--x86] filename`
+```
+encode.py [-h] [-b BYTES] [-r REDUNDANCY] [-tlp TRANSMISSION_LOSS_PERCENTAGE] [--x86] filename
+```
 
 * `filename` - Input file path, REQUIRED
 * `-h, --help` - Shows this information and exits
@@ -67,7 +69,9 @@ To make the encoder and decoder runnable from the command line, ensure that both
 * `--x86` - Forces the use of 32-bit unsigned int datatype for the encoded data buffer for 32-bit systems
 
 ## Decoder Arguments ##
-`decode.py [-h] [--x86] filename`
+```
+decode.py [-h] [--x86] filename
+```
 
 * `filename` - Input file path, REQUIRED
 * `-h, --help` - Shows this information and exits
