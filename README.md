@@ -42,7 +42,7 @@ Verified Platforms
 Requirements
 ==================
 * Python 3.x
-	* numpy
+	* numpy (latest version)
 	
 Usage
 =========
