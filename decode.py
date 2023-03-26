@@ -1,3 +1,5 @@
+#!/usr/bin python3
+
 import os
 import numpy as np
 import sys
@@ -128,7 +130,7 @@ def main():
     # solution would involve making sure we aren't stripping off intended nulls terminating the original data,
     # but this works as a proof of concept.
 
-    with open("outfile.txt", "wb") as output_file:
+    with open("outfile", "wb") as output_file:
         with open("temp_outfile", "rb") as f:
             output_file.write(f.read().rstrip(b'\0'))
     os.remove("temp_outfile")
