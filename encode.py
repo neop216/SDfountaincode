@@ -117,8 +117,8 @@ def main():
     if BUNDLE_BYTES < 8:
         raise argparse.ArgumentError("Minimum bundle size is 8 bytes")
 
-    if REDUNDANCY == 1.0:
-        raise argparse.ArgumentError("Redundancy scalar must be greater than 1.0")
+    if REDUNDANCY < 1.3:
+        raise argparse.ArgumentError("Minimum redundancy scalar is 1.3")
 
     if TRANSMISSION_LOSS_PERCENTAGE < 0.0 or TRANSMISSION_LOSS_PERCENTAGE > 100.0:
         raise argparse.ArgumentError("Transmission loss percentage must be a value from 0.0 to 100.0, inclusive")
