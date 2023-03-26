@@ -6,6 +6,7 @@ import sys
 import json
 import gzip
 import re
+import argparse
 
 """
 RATIONALE: A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
@@ -33,12 +34,8 @@ Implementations studied during research for this project those by:
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
 """
 
-BUNDLE_BYTES = 1000  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
-REDUNDANCY = 2  # Scalar for the encoded data's size
-TRANSMISSION_LOSS_PERCENTAGE = 20
 
-
-def decode(encoded_data, original_size):
+def decode(encoded_data):
     # First, initialize the decoded_data list as a list of -1s with length equal to the number of original bundles.
     # Since we XORed unsigned integers together, the values of encoded blocks should NEVER be negative. Thus,
     # initializing the decoded_data list with -1s gives an easy way to check whether an original bundle has been solved.
@@ -89,20 +86,26 @@ def decode(encoded_data, original_size):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("usage: decode.py (filename)")
-        exit(-1)
+    parser = argparse.ArgumentParser(description="Fountain code decoder for use with NASA's HDTN")
+
+    parser.add_argument("filename", help="Input file path")
+    parser.add_argument("--x86", help="Use 32-bit unsigned int datatype for the encoded data buffer",
+                        action="store_true")
+
+    args = parser.parse_args()
 
     if not os.path.exists(sys.argv[1]):
         print(f"file {sys.argv[1]} does not exist")
         exit(1)
+
+    DATATYPE = np.uint64 if not args.x86 else np.uint32
 
     # Each bundle from the encoded data file is already the correct bundle size, so we do not need to worry about
     # each segment read below being the same size. The entire file is read into a string, which is then decoded from
     # bytes and split into individual bundles using regex. Each individual bundle is still a string, so we load them
     # into dictionaries.
 
-    with gzip.open(sys.argv[1], "rb") as f:
+    with gzip.open(args.filename, "rb") as f:
         bundle_list = f.read()
 
     bundle_list = bundle_list.decode()
@@ -114,10 +117,10 @@ def main():
 
         # Bundle values were stored as lists instead of numpy arrays so that the decoder can read them. Now that they
         # have been parsed, they can be converted back into numpy arrays.
-        bundle["value"] = np.array(bundle["value"], dtype=np.uint64)
+        bundle["value"] = np.array(bundle["value"], dtype=DATATYPE)
         data.append(bundle)
 
-    decoded_data = decode(data, round(len(data) / REDUNDANCY))
+    decoded_data = decode(data)
     # print(f"\n\n\nDECODED DATA: \n{decoded_data}")
 
     # Recompile the decoded_data bundles into an output file.

@@ -8,6 +8,7 @@ import sys
 import gzip
 import shutil
 import json
+import argparse
 
 """
 RATIONALE: A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
@@ -39,8 +40,6 @@ This encoder assumes that HDTN has a way of designating ordering information wit
 This encoder does not add any ordering information in its current iteration.
 """
 
-BUNDLE_BYTES = 1000  # Number of bytes per bundle created from the original data. Must be a power of 2 greater than 8.
-REDUNDANCY = 2  # Scalar for the encoded data's size
 TRANSMISSION_LOSS_PERCENTAGE = 0
 
 def ideal_soliton(k):
@@ -92,15 +91,39 @@ def encode(bundles, original_size, encoded_size):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("usage: encode.py (filename)")
-        exit()
+    parser = argparse.ArgumentParser(description="Fountain code encoder for use with NASA's HDTN")
+
+    parser.add_argument("filename", help="Input file path")
+    parser.add_argument("-b", "--bytes", help="Number of bytes per bundle >= 8", default=1000, type=int)
+    parser.add_argument("-r", "--redundancy",
+                        help="Scalar for the encoded data's size > 1.0; higher values will increase redundancy as well as file size",
+                        default=2.0, type=float)
+    parser.add_argument("-tlp", "--transmission-loss-percentage", help="Simulate transmission loss; percentage from 0 to 100",
+                        default=0.0, type=float)
+    parser.add_argument("--x86", help="Use 32-bit unsigned int datatype for the encoded data buffer",
+                        action="store_true")
+
+    args = parser.parse_args()
 
     try:
-        input_file = open(sys.argv[1], "rb")
+        input_file = open(args.filename, "rb")
     except Exception as e:
         print(e)
         exit()
+
+    BUNDLE_BYTES = args.bytes
+    REDUNDANCY = args.redundancy
+    TRANSMISSION_LOSS_PERCENTAGE = args.transmission_loss_percentage
+    DATATYPE = np.uint64 if not args.x86 else np.uint32
+
+    if BUNDLE_BYTES < 8:
+        raise argparse.ArgumentError("Minimum bundle size is 8 bytes")
+
+    if REDUNDANCY == 1.0:
+        raise argparse.ArgumentError("Redundancy scalar must be greater than 1.0")
+
+    if TRANSMISSION_LOSS_PERCENTAGE < 0.0 or TRANSMISSION_LOSS_PERCENTAGE > 100.0:
+        raise argparse.ArgumentError("Transmission loss percentage must be a value from 0.0 to 100.0, inclusive")
 
     # Using a text file as input instead of a numpy array because LT code implementation doesn't seem to play nicely
     # with the numpy arrays of random integers. Using files seems to be a popular method of simulating a data stream
@@ -130,7 +153,7 @@ def main():
         # integers. The magic of how exactly these values are translated to unsigned 64 bit integers is handled by
         # numpy. If we want to forgo using any python packages (helpful if someone ever translates this to C), we will
         # need to uncover said magic methods.
-        byte_array = np.frombuffer(byte_array, dtype=np.uint64)  # Also, maybe use np.uint32 if x86 systems? Ask Rachel
+        byte_array = np.frombuffer(byte_array, dtype=DATATYPE)  # Also, maybe use np.uint32 if x86 systems? Ask Rachel
         data.append(byte_array)
 
     input_file.close()
@@ -141,7 +164,7 @@ def main():
     #print(f"\n\n\nENCODED DATA: \n{encoded_data}")
 
     # Simulate data loss, if necessary
-    if TRANSMISSION_LOSS_PERCENTAGE > 0:
+    if TRANSMISSION_LOSS_PERCENTAGE > 0.0:
         encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
 
     # Write each bundle to the temporary output file. Since HDTN will be fragmenting this encoded file into bundles,
