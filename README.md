@@ -5,10 +5,10 @@ Overview
 =========
 
 Authors:
-Noah Douglass
-John Langel
-Weiland Moore
-Lawrence Ng
+* Noah Douglass
+* John Langel
+* Weiland Moore
+* Lawrence Ng
 
 Created as a senior design capstone project at Cleveland State University under the guidance of faculty advisor Dr. Sanchita Mal-Sarkar and industry advisor Dr. Rachel Dudukovich of NASA Glenn Research Center.
 
