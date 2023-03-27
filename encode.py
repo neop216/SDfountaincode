@@ -9,6 +9,7 @@ import gzip
 import shutil
 import json
 import argparse
+import time
 
 """
 RATIONALE: A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
@@ -89,6 +90,8 @@ def encode(bundles, original_size, encoded_size):
 
 
 def main():
+    print("<encoder> setting up...", end="")
+
     parser = argparse.ArgumentParser(description="Fountain code encoder for use with NASA's HDTN")
 
     parser.add_argument("filename", help="Input file path")
@@ -158,8 +161,14 @@ def main():
 
     # For debugging purposes, we can output all our data sets. Could be added to a verbose option in the future.
     #print(f"ORIGINAL DATA: \n{data}")
-    encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduce            d here
-    #print(f"\n\n\nENCODED DATA: \n{encoded_data}")
+    print(f"finished!\n<encoder> encoding data...", end="")
+
+    start = time.time()
+    encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduced here
+    end = time.time()
+    print(f"finished! elapsed time: {round((end - start) * 1000,1)} ms\n<encoder> writing encoded data...", end="")
+    # print(f"\n\n\nENCODED DATA: \n{encoded_data}")
+
 
     # Simulate data loss, if necessary
     if TRANSMISSION_LOSS_PERCENTAGE > 0.0:
@@ -182,6 +191,8 @@ def main():
         with gzip.open("encodefile.gz", "wb") as compressed_file:
             shutil.copyfileobj(uncompressed_file, compressed_file)
     os.remove("temp_encodefile")
+
+    print(f"finished!")
 
 if __name__ == "__main__":
     main()

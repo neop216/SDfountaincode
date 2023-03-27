@@ -7,6 +7,7 @@ import json
 import gzip
 import re
 import argparse
+import time
 
 """
 RATIONALE: A fountain code is a type of encoding process that allows the original data to be recovered from sufficiently
@@ -35,7 +36,11 @@ Implementations studied during research for this project those by:
 """
 
 
-def decode(encoded_data):
+def decode(data):
+    encoded_data = []
+    for bundle in data:
+        encoded_data.append(bundle)
+
     # First, initialize the decoded_data list as a list of -1s with length equal to the number of original bundles.
     # Since we XORed unsigned integers together, the values of encoded blocks should NEVER be negative. Thus,
     # initializing the decoded_data list with -1s gives an easy way to check whether an original bundle has been solved.
@@ -86,6 +91,8 @@ def decode(encoded_data):
 
 
 def main():
+    print("<decoder> setting up...", end="")
+
     parser = argparse.ArgumentParser(description="Fountain code decoder for use with NASA's HDTN")
 
     parser.add_argument("filename", help="Input file path")
@@ -120,7 +127,12 @@ def main():
         bundle["value"] = np.array(bundle["value"], dtype=DATATYPE)
         data.append(bundle)
 
+    print(f"finished!\n<decoder> decoding data...", end="")
+
+    start = time.time()
     decoded_data = decode(data)
+    end = time.time()
+    print(f"finished! elapsed time: {round((end - start) * 1000, 1)} ms\n<decoder> writing decoded data...", end="")
     # print(f"\n\n\nDECODED DATA: \n{decoded_data}")
 
     # Recompile the decoded_data bundles into an output file.
@@ -137,6 +149,8 @@ def main():
         with open("temp_outfile", "rb") as f:
             output_file.write(f.read().rstrip(b'\0'))
     os.remove("temp_outfile")
+
+    print(f"finished!")
 
 if __name__ == "__main__":
     main()
