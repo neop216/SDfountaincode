@@ -91,7 +91,7 @@ def decode(data):
 
 
 def main():
-    print("<decoder> setting up...", end="")
+    print("<decoder> setting up...")
 
     parser = argparse.ArgumentParser(description="Fountain code decoder for use with NASA's HDTN")
 
@@ -127,12 +127,12 @@ def main():
         bundle["value"] = np.array(bundle["value"], dtype=DATATYPE)
         data.append(bundle)
 
-    print(f"finished!\n<decoder> decoding data...", end="")
+    print(f"<decoder> setup finished!\n<decoder> decoding data...")
 
     start = time.time()
     decoded_data = decode(data)
     end = time.time()
-    print(f"finished! elapsed time: {round((end - start) * 1000, 1)} ms\n<decoder> writing decoded data...", end="")
+    print(f"<decoder> data decoded! elapsed time: {round((end - start) * 1000, 1)} ms\n<decoder> writing decoded data...")
     # print(f"\n\n\nDECODED DATA: \n{decoded_data}")
 
     # Recompile the decoded_data bundles into an output file.
@@ -150,7 +150,7 @@ def main():
             output_file.write(f.read().rstrip(b'\0'))
     os.remove("temp_outfile")
 
-    print(f"finished!")
+    print(f"<decoder> writing finished!")
 
 if __name__ == "__main__":
     main()

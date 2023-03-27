@@ -90,7 +90,7 @@ def encode(bundles, original_size, encoded_size):
 
 
 def main():
-    print("<encoder> setting up...", end="")
+    print("<encoder> setting up...")
 
     parser = argparse.ArgumentParser(description="Fountain code encoder for use with NASA's HDTN")
 
@@ -161,12 +161,12 @@ def main():
 
     # For debugging purposes, we can output all our data sets. Could be added to a verbose option in the future.
     #print(f"ORIGINAL DATA: \n{data}")
-    print(f"finished!\n<encoder> encoding data...", end="")
+    print(f"<encoder> setup finished!\n<encoder> encoding data...")
 
     start = time.time()
     encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduced here
     end = time.time()
-    print(f"finished! elapsed time: {round((end - start) * 1000,1)} ms\n<encoder> writing encoded data...", end="")
+    print(f"<encoder> data encoded! elapsed time: {round((end - start) * 1000,1)} ms\n<encoder> writing encoded data...")
     # print(f"\n\n\nENCODED DATA: \n{encoded_data}")
 
 
@@ -192,7 +192,7 @@ def main():
             shutil.copyfileobj(uncompressed_file, compressed_file)
     os.remove("temp_encodefile")
 
-    print(f"finished!")
+    print(f"<encoder> writing finished!")
 
 if __name__ == "__main__":
     main()
