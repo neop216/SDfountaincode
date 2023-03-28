@@ -36,10 +36,15 @@ Implementations studied during research for this project those by:
 """
 
 
-def decode(data):
-    encoded_data = []
-    for bundle in data:
-        encoded_data.append(bundle)
+def decode(encoded_data):
+    component_occurrences = []
+    for i, bundle in enumerate(encoded_data):
+        bundle_components = bundle["components"]
+        for component in bundle_components:
+            if component >= len(component_occurrences):
+                for _ in range(component - len(component_occurrences) + 1):
+                    component_occurrences.append([])
+            component_occurrences[component].append(i)
 
     # First, initialize the decoded_data list as a list of -1s with length equal to the number of original bundles.
     # Since we XORed unsigned integers together, the values of encoded blocks should NEVER be negative. Thus,
@@ -58,13 +63,16 @@ def decode(data):
     while solved != 0:
         solved = 0
         for i, bundle in enumerate(encoded_data):
+            if bundle is None:
+                continue
+
             if len(bundle["components"]) == 1:
                 solved += 1
                 component_index = bundle["components"][0]
-                encoded_data.pop(i)
+                encoded_data[i] = None
 
                 if component_index >= len(decoded_data):
-                    for i in range(component_index - len(decoded_data) + 1):
+                    for _ in range(component_index - len(decoded_data) + 1):
                         decoded_data.append(-1)
 
                 cur_decode = decoded_data[component_index]
@@ -82,8 +90,14 @@ def decode(data):
                     decoded_data[component_index] = cur_value
                     solved += 1
 
-                    for other_bundle in encoded_data:
-                        if len(other_bundle["components"]) > 1 and component_index in other_bundle["components"]:
+                    cur_component_occurrences = component_occurrences[component_index]
+
+                    for j in cur_component_occurrences:
+                        other_bundle = encoded_data[j]
+                        if other_bundle is None:
+                            continue
+
+                        if len(other_bundle["components"]) > 1:
                             other_bundle["value"] = cur_value ^ other_bundle["value"]
                             other_bundle["components"].remove(component_index)
 
