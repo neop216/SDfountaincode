@@ -67,16 +67,16 @@ def encode(bundles, original_size, encoded_size):
 
     encoded_data = []
 
-    for i in range(encoded_size):
-        # Randomly choosing a number of xor neighbors, even from a probability distribution, will likely lead to
-        # unsolvable encoding, so to ensure that the encoding is solvable, we start by creating a bundle with one xor
-        # neighbor. In this way, the xor neighbors distribution is slightly less ideal, but it is far more important
-        # that the encoded data is solvable.
-        if i == 0:
-            cur_xor_neighbors = 1
-        else:
-            cur_xor_neighbors = random.choices(xor_possibilities, ideal_dist)[0]
+    # Randomly choosing a number of xor neighbors, even from a probability distribution, will likely lead to
+    # unsolvable encoding, so to ensure that the encoding is solvable, we start by creating a bundle with one xor
+    # neighbor. In this way, the xor neighbors distribution is slightly less ideal, but it is far more important
+    # that the encoded data is solvable.
 
+    xor_neighbors = np.random.choice(xor_possibilities, size=(encoded_size - 1), p=ideal_dist).tolist()
+    # cur_xor_neighbors = np.random.choice(xor_possibilities, size=1, p=ideal_dist).tolist()[0]
+    xor_neighbors.append(1)
+
+    for cur_xor_neighbors in xor_neighbors:
         components = random.sample(range(original_size), cur_xor_neighbors)
 
         cur_encode = bundles[components[0]]
