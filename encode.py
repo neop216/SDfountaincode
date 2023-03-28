@@ -94,7 +94,7 @@ def main():
     parser = argparse.ArgumentParser(description="Fountain code encoder for use with NASA's HDTN")
 
     parser.add_argument("filename", help="Input file path")
-    parser.add_argument("-b", "--bytes", help="Number of bytes per bundle >= 8", default=1000, type=int)
+    parser.add_argument("-b", "--bytes", help="Number of bytes per bundle >= 8", default=65536, type=int)
     parser.add_argument("-r", "--redundancy",
                         help="Scalar for the encoded data's size >= 1.3; higher values will increase redundancy as well as file size",
                         default=2.0, type=float)
