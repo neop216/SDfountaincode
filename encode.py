@@ -4,7 +4,6 @@ import os
 import random
 import math
 import numpy as np
-import sys
 import gzip
 import shutil
 import json
