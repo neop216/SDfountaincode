@@ -109,15 +109,12 @@ def main():
 
     parser = argparse.ArgumentParser(description="Fountain code decoder for use with NASA's HDTN")
 
-    parser.add_argument("filename", help="Input file path")
+    parser.add_argument("input_filename", help="Input file/directory path")
+    parser.add_argument("output_directory", help="Output directory path")
     parser.add_argument("--x86", help="Use 32-bit unsigned int datatype for the encoded data buffer",
                         action="store_true")
 
     args = parser.parse_args()
-
-    if not os.path.exists(sys.argv[1]):
-        print(f"file {sys.argv[1]} does not exist")
-        exit(1)
 
     DATATYPE = np.uint64 if not args.x86 else np.uint32
 
@@ -126,45 +123,62 @@ def main():
     # bytes and split into individual bundles using regex. Each individual bundle is still a string, so we load them
     # into dictionaries.
 
-    with gzip.open(args.filename, "rb") as f:
-        bundle_list = f.read()
+    file_list = []
 
-    bundle_list = bundle_list.decode()
-    bundles = re.findall(r'\{.*?\}', bundle_list)
+    if os.path.isfile(args.input_filename):
+        file_list.append(args.input_filename)
+    elif os.path.isdir(args.input_filename):
+        for file in os.listdir(args.input_filename):
+            file_list.append(os.path.join(args.input_filename, file))
 
-    data = []
-    for bundle in bundles:
-        bundle = json.loads(bundle)
+    print(f"<decoder> setup finished!")
 
-        # Bundle values were stored as lists instead of numpy arrays so that the decoder can read them. Now that they
-        # have been parsed, they can be converted back into numpy arrays.
-        bundle["value"] = np.array(bundle["value"], dtype=DATATYPE)
-        data.append(bundle)
+    for filename in file_list:
+        print(f"<decoder> reading file {filename}...")
+        with gzip.open(filename, "rb") as f:
+            bundle_list = f.read()
 
-    print(f"<decoder> setup finished!\n<decoder> decoding data...")
+        bundle_list = bundle_list.decode()
+        bundles = re.findall(r'\{.*?\}', bundle_list)
 
-    start = time.time()
-    decoded_data = decode(data)
-    end = time.time()
-    print(f"<decoder> data decoded! elapsed time: {round((end - start) * 1000, 1)} ms\n<decoder> writing decoded data...")
-    # print(f"\n\n\nDECODED DATA: \n{decoded_data}")
+        data = []
+        for bundle in bundles:
+            bundle = json.loads(bundle)
 
-    # Recompile the decoded_data bundles into an output file.
+            # Bundle values were stored as lists instead of numpy arrays so that the decoder can read them. Now that they
+            # have been parsed, they can be converted back into numpy arrays.
+            bundle["value"] = np.array(bundle["value"], dtype=DATATYPE)
+            data.append(bundle)
 
-    with open("temp_outfile", "wb") as f:
-        for bundle in decoded_data:
-            f.write(bundle)
+        print(f"<decoder> setup finished!\n<decoder> decoding {filename}...")
 
-    # Remember that we padded the end of our original file with zeros, so we strip them off. A more intelligent
-    # solution would involve making sure we aren't stripping off intended nulls terminating the original data,
-    # but this works as a proof of concept.
+        start = time.time()
+        decoded_data = decode(data)
+        end = time.time()
 
-    with open("outfile", "wb") as output_file:
-        with open("temp_outfile", "rb") as f:
-            output_file.write(f.read().rstrip(b'\0'))
-    os.remove("temp_outfile")
+        filename = os.path.basename(filename).replace("encodefile_", "").replace(".gz", "")
+        print(f"<decoder> data decoded! elapsed time: {round((end - start) * 1000, 1)} ms\n<decoder> writing decoded data to {args.output_directory}/{filename}...")
+        # print(f"\n\n\nDECODED DATA: \n{decoded_data}")
 
-    print(f"<decoder> writing finished!")
+        # Recompile the decoded_data bundles into an output file.
+
+        if not os.path.exists(args.output_directory):
+            os.makedirs(args.output_directory)
+
+        with open("temp_outfile", "wb") as f:
+            for bundle in decoded_data:
+                f.write(bundle)
+
+        # Remember that we padded the end of our original file with zeros, so we strip them off. A more intelligent
+        # solution would involve making sure we aren't stripping off intended nulls terminating the original data,
+        # but this works as a proof of concept.
+
+        with open(args.output_directory + "/" + filename, "wb") as output_file:
+            with open("temp_outfile", "rb") as f:
+                output_file.write(f.read().rstrip(b'\0'))
+        os.remove("temp_outfile")
+
+        print(f"<decoder> writing finished!")
 
 if __name__ == "__main__":
     main()

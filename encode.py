@@ -5,7 +5,6 @@ import random
 import math
 import numpy as np
 import gzip
-import shutil
 import json
 import argparse
 import time
@@ -93,7 +92,8 @@ def main():
 
     parser = argparse.ArgumentParser(description="Fountain code encoder for use with NASA's HDTN")
 
-    parser.add_argument("filename", help="Input file path")
+    parser.add_argument("input_filename", help="Input file/directory path")
+    parser.add_argument("output_directory", help="Output directory path")
     parser.add_argument("-b", "--bytes", help="Number of bytes per bundle >= 8", default=65536, type=int)
     parser.add_argument("-r", "--redundancy",
                         help="Scalar for the encoded data's size >= 1.3; higher values will increase loss tolerance as well as file size",
@@ -105,78 +105,93 @@ def main():
 
     args = parser.parse_args()
 
-    with open(args.filename, "rb") as input_file:
-        BUNDLE_BYTES = args.bytes
-        REDUNDANCY = args.redundancy
-        TRANSMISSION_LOSS_PERCENTAGE = args.transmission_loss_percentage
-        DATATYPE = np.uint64 if not args.x86 else np.uint32
+    file_list = []
 
-        if BUNDLE_BYTES < 8:
-            raise argparse.ArgumentError("Minimum bundle size is 8 bytes")
+    if os.path.isfile(args.input_filename):
+        file_list.append(args.input_filename)
+    elif os.path.isdir(args.input_filename):
+        for file in os.listdir(args.input_filename):
+            file_list.append(os.path.join(args.input_filename, file))
 
-        if REDUNDANCY < 1.3:
-            raise argparse.ArgumentError("Minimum redundancy scalar is 1.3")
+    print(f"<encoder> setup finished!")
 
-        if TRANSMISSION_LOSS_PERCENTAGE < 0.0 or TRANSMISSION_LOSS_PERCENTAGE > 100.0:
-            raise argparse.ArgumentError("Transmission loss percentage must be a value from 0.0 to 100.0, inclusive")
+    for filename in file_list:
+        print(f"<encoder> reading file {filename}...")
+        with open(filename, "rb") as input_file:
+            BUNDLE_BYTES = args.bytes
+            REDUNDANCY = args.redundancy
+            TRANSMISSION_LOSS_PERCENTAGE = args.transmission_loss_percentage
+            DATATYPE = np.uint64 if not args.x86 else np.uint32
 
-        # Using a text file as input instead of a numpy array because LT code implementation doesn't seem to play nicely
-        # with the numpy arrays of random integers. Using files seems to be a popular method of simulating a data stream
-        # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
-        # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
-        input_file_name = input_file.name
-        # Only really need to get the file extension in this simulated environment, data can be sent without extensions in
-        # practice
-        _, extension = os.path.splitext(os.path.abspath(input_file.name))
-        data = []
+            if BUNDLE_BYTES < 8:
+                raise argparse.ArgumentError("Minimum bundle size is 8 bytes")
 
-        # Read the text file into bundles of predefined size specified by BUNDLE_BYTES above
-        for i in range(math.ceil(os.path.getsize(input_file_name) / BUNDLE_BYTES)):
-            byte_array = input_file.read(BUNDLE_BYTES)
-            # Testfile is transformed into an object of type bytearray so that it can be parsed by np.frombuffer later.
-            # Just in case our text file does not have an exact multiple of BUNDLE_BYTES bytes (it probably doesn't) pad the
-            # end of the last byte with zeros. This slightly increases the size of the original data, but it is necessary to
-            # make it play nicely with the encoding and decoding process of LT code
+            if REDUNDANCY < 1.3:
+                raise argparse.ArgumentError("Minimum redundancy scalar is 1.3")
 
-            byte_array = byte_array.ljust(BUNDLE_BYTES, b'\x00')
+            if TRANSMISSION_LOSS_PERCENTAGE < 0.0 or TRANSMISSION_LOSS_PERCENTAGE > 100.0:
+                raise argparse.ArgumentError("Transmission loss percentage must be a value from 0.0 to 100.0, inclusive")
 
-            # np.frombuffer takes our bytearray and interprets it as a buffer of elements of a specific type. The default
-            # value for dtype is float, but since LT code uses XORs, it would be better to interpret these elements as
-            # integers. The magic of how exactly these values are translated to unsigned 64 bit integers is handled by
-            # numpy. If we want to forgo using any python packages (helpful if someone ever translates this to C), we will
-            # need to uncover said magic methods.
+            # Using a text file as input instead of a numpy array because LT code implementation doesn't seem to play nicely
+            # with the numpy arrays of random integers. Using files seems to be a popular method of simulating a data stream
+            # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
+            # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
+            input_file_name = input_file.name
+            # Only really need to get the file extension in this simulated environment, data can be sent without extensions in
+            # practice
+            _, extension = os.path.splitext(os.path.abspath(input_file.name))
+            data = []
 
-            byte_array = np.frombuffer(byte_array, dtype=DATATYPE)
-            data.append(byte_array)
+            # Read the text file into bundles of predefined size specified by BUNDLE_BYTES above
+            for i in range(math.ceil(os.path.getsize(input_file_name) / BUNDLE_BYTES)):
+                byte_array = input_file.read(BUNDLE_BYTES)
+                # Testfile is transformed into an object of type bytearray so that it can be parsed by np.frombuffer later.
+                # Just in case our text file does not have an exact multiple of BUNDLE_BYTES bytes (it probably doesn't) pad the
+                # end of the last byte with zeros. This slightly increases the size of the original data, but it is necessary to
+                # make it play nicely with the encoding and decoding process of LT code
 
-    # For debugging purposes, we can output all our data sets. Could be added to a verbose option in the future.
-    #print(f"ORIGINAL DATA: \n{data}")
-    print(f"<encoder> setup finished!\n<encoder> encoding data...")
+                byte_array = byte_array.ljust(BUNDLE_BYTES, b'\x00')
 
-    start = time.time()
-    encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduced here
-    end = time.time()
-    print(f"<encoder> data encoded! elapsed time: {round((end - start) * 1000,1)} ms\n<encoder> writing encoded data...")
-    # print(f"\n\n\nENCODED DATA: \n{encoded_data}")
+                # np.frombuffer takes our bytearray and interprets it as a buffer of elements of a specific type. The default
+                # value for dtype is float, but since LT code uses XORs, it would be better to interpret these elements as
+                # integers. The magic of how exactly these values are translated to unsigned 64 bit integers is handled by
+                # numpy. If we want to forgo using any python packages (helpful if someone ever translates this to C), we will
+                # need to uncover said magic methods.
+
+                byte_array = np.frombuffer(byte_array, dtype=DATATYPE)
+                data.append(byte_array)
+
+        # For debugging purposes, we can output all our data sets. Could be added to a verbose option in the future.
+        #print(f"ORIGINAL DATA: \n{data}")
+        print(f"<encoder> reading finished!\n<encoder> encoding {filename}...")
+
+        start = time.time()
+        encoded_data = encode(data, len(data), round(REDUNDANCY * len(data)))  # Redundancy is introduced here
+        end = time.time()
+        print(f"<encoder> data encoded! elapsed time: {round((end - start) * 1000,1)} ms\n<encoder> writing encoded data to {args.output_directory}/encodefile_{os.path.basename(filename)}.gz...")
+        # print(f"\n\n\nENCODED DATA: \n{encoded_data}")
 
 
-    # Simulate data loss, if necessary
-    if TRANSMISSION_LOSS_PERCENTAGE > 0.0:
-        encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
+        # Simulate data loss, if necessary
+        if TRANSMISSION_LOSS_PERCENTAGE > 0.0:
+            encoded_data = random.sample(encoded_data, round(len(encoded_data) * (100 - TRANSMISSION_LOSS_PERCENTAGE) / 100))
 
-    # Write each bundle to the temporary output file. Since HDTN will be fragmenting this encoded file into bundles,
-    # we should not write these bundles to the file all at once in a unified data structure like a list.
-    # As long as each bundle is surrounded by curly braces {}, the decoder can recover them using regex.
+        # Write each bundle to the temporary output file. Since HDTN will be fragmenting this encoded file into bundles,
+        # we should not write these bundles to the file all at once in a unified data structure like a list.
+        # As long as each bundle is surrounded by curly braces {}, the decoder can recover them using regex.
 
-    with gzip.open("encodefile.gz", "wb") as f:
-        for bundle in encoded_data:
-            # For the purposes of reading these bundles later, we should write them with lists instead of numpy arrays.
-            # The lists are converted back into numpy arrays by the decoder.
-            bundle["value"] = bundle["value"].tolist()
-            to_write = json.dumps(bundle).encode()
-            f.write(to_write)
+        if not os.path.exists(args.output_directory):
+            os.makedirs(args.output_directory)
 
-    print(f"<encoder> writing finished!")
+        with gzip.open(args.output_directory + "/encodefile_" + os.path.basename(filename) + ".gz", "wb") as f:
+            for bundle in encoded_data:
+                # For the purposes of reading these bundles later, we should write them with lists instead of numpy arrays.
+                # The lists are converted back into numpy arrays by the decoder.
+                bundle["value"] = bundle["value"].tolist()
+                to_write = json.dumps(bundle).encode()
+                f.write(to_write)
+
+        print(f"<encoder> writing finished!")
 
 if __name__ == "__main__":
     main()
