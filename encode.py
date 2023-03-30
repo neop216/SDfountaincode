@@ -94,7 +94,7 @@ def main():
     parser = argparse.ArgumentParser(description="Fountain code encoder for use with NASA's HDTN")
 
     parser.add_argument("filename", help="Input file path")
-    parser.add_argument("-b", "--bytes", help="Number of bytes per bundle >= 8", default=1000, type=int)
+    parser.add_argument("-b", "--bytes", help="Number of bytes per bundle >= 8", default=65536, type=int)
     parser.add_argument("-r", "--redundancy",
                         help="Scalar for the encoded data's size >= 1.3; higher values will increase redundancy as well as file size",
                         default=2.0, type=float)
@@ -105,58 +105,49 @@ def main():
 
     args = parser.parse_args()
 
-    try:
-        input_file = open(args.filename, "rb")
-    except Exception as e:
-        print(e)
-        exit()
+    with open(args.filename, "rb") as input_file:
+        BUNDLE_BYTES = args.bytes
+        REDUNDANCY = args.redundancy
+        TRANSMISSION_LOSS_PERCENTAGE = args.transmission_loss_percentage
+        DATATYPE = np.uint64 if not args.x86 else np.uint32
 
-    BUNDLE_BYTES = args.bytes
-    REDUNDANCY = args.redundancy
-    TRANSMISSION_LOSS_PERCENTAGE = args.transmission_loss_percentage
-    DATATYPE = np.uint64 if not args.x86 else np.uint32
+        if BUNDLE_BYTES < 8:
+            raise argparse.ArgumentError("Minimum bundle size is 8 bytes")
 
-    if BUNDLE_BYTES < 8:
-        raise argparse.ArgumentError("Minimum bundle size is 8 bytes")
+        if REDUNDANCY < 1.3:
+            raise argparse.ArgumentError("Minimum redundancy scalar is 1.3")
 
-    if REDUNDANCY < 1.3:
-        raise argparse.ArgumentError("Minimum redundancy scalar is 1.3")
+        if TRANSMISSION_LOSS_PERCENTAGE < 0.0 or TRANSMISSION_LOSS_PERCENTAGE > 100.0:
+            raise argparse.ArgumentError("Transmission loss percentage must be a value from 0.0 to 100.0, inclusive")
 
-    if TRANSMISSION_LOSS_PERCENTAGE < 0.0 or TRANSMISSION_LOSS_PERCENTAGE > 100.0:
-        raise argparse.ArgumentError("Transmission loss percentage must be a value from 0.0 to 100.0, inclusive")
+        # Using a text file as input instead of a numpy array because LT code implementation doesn't seem to play nicely
+        # with the numpy arrays of random integers. Using files seems to be a popular method of simulating a data stream
+        # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
+        # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
+        input_file_name = input_file.name
+        # Only really need to get the file extension in this simulated environment, data can be sent without extensions in
+        # practice
+        _, extension = os.path.splitext(os.path.abspath(input_file.name))
+        data = []
 
-    # Using a text file as input instead of a numpy array because LT code implementation doesn't seem to play nicely
-    # with the numpy arrays of random integers. Using files seems to be a popular method of simulating a data stream
-    # into the LT code software, as was seen in many implementations studied during our research. Also, opening the file
-    # in binary mode allows it to be compiled into a bytearray later, so we use the b mode.
-    input_file_name = input_file.name
-    # Only really need to get the file extension in this simulated environment, data can be sent without extensions in
-    # practice
-    _, extension = os.path.splitext(os.path.abspath(input_file.name))
-    data = []
+        # Read the text file into bundles of predefined size specified by BUNDLE_BYTES above
+        for i in range(math.ceil(os.path.getsize(input_file_name) / BUNDLE_BYTES)):
+            byte_array = input_file.read(BUNDLE_BYTES)
+            # Testfile is transformed into an object of type bytearray so that it can be parsed by np.frombuffer later.
+            # Just in case our text file does not have an exact multiple of BUNDLE_BYTES bytes (it probably doesn't) pad the
+            # end of the last byte with zeros. This slightly increases the size of the original data, but it is necessary to
+            # make it play nicely with the encoding and decoding process of LT code
 
-    # Read the text file into bundles of predefined size specified by BUNDLE_BYTES above
-    for i in range(math.ceil(os.path.getsize(input_file_name) / BUNDLE_BYTES)):
-        byte_array = input_file.read(BUNDLE_BYTES)
-        # Testfile is transformed into an object of type bytearray so that it can be parsed by np.frombuffer later
-        byte_array = bytearray(byte_array)
-        byte_array_length = len(byte_array)
+            byte_array = byte_array.ljust(BUNDLE_BYTES, b'\x00')
 
-        # Just in case our text file does not have an exact multiple of BUNDLE_BYTES bytes (it probably doesn't) pad the
-        # end of the last byte with zeros. This slightly increases the size of the original data, but it is necessary to
-        # make it play nicely with the encoding and decoding process of LT code
-        if byte_array_length < BUNDLE_BYTES:
-            byte_array += bytearray(BUNDLE_BYTES - byte_array_length)
+            # np.frombuffer takes our bytearray and interprets it as a buffer of elements of a specific type. The default
+            # value for dtype is float, but since LT code uses XORs, it would be better to interpret these elements as
+            # integers. The magic of how exactly these values are translated to unsigned 64 bit integers is handled by
+            # numpy. If we want to forgo using any python packages (helpful if someone ever translates this to C), we will
+            # need to uncover said magic methods.
 
-        # np.frombuffer takes our bytearray and interprets it as a buffer of elements of a specific type. The default
-        # value for dtype is float, but since LT code uses XORs, it would be better to interpret these elements as
-        # integers. The magic of how exactly these values are translated to unsigned 64 bit integers is handled by
-        # numpy. If we want to forgo using any python packages (helpful if someone ever translates this to C), we will
-        # need to uncover said magic methods.
-        byte_array = np.frombuffer(byte_array, dtype=DATATYPE)  # Also, maybe use np.uint32 if x86 systems? Ask Rachel
-        data.append(byte_array)
-
-    input_file.close()
+            byte_array = np.frombuffer(byte_array, dtype=DATATYPE)
+            data.append(byte_array)
 
     # For debugging purposes, we can output all our data sets. Could be added to a verbose option in the future.
     #print(f"ORIGINAL DATA: \n{data}")
