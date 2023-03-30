@@ -52,9 +52,11 @@ To make the encoder and decoder runnable from the command line, ensure that both
 * On Windows, the scripts will be executable by running them as follows:
 	* `python3 /path/to/encoder`
 	* `python3 /path/to/decoder`
-* On Linux, add the executable permission to each file:
+* On Linux, add the executable permission to each file before executing:
 	* `chmod +x /path/to/encoder`
 	* `chmod +x /path/to/decoder`
+	* `./path/to/encoder`
+	* `./path/to/decoder`
 	
 ## Encoder Arguments ##
 ```
