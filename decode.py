@@ -33,6 +33,10 @@ Implementations studied during research for this project those by:
     Roberto Francescon (obolo) and Dominik Danelski (Etua): https://github.com/obolo/freeRaptor
     Daniel Chang (mwdchang): https://github.com/mwdchang/fountain-code
     Aman Tiwari: https://observablehq.com/@aman-tiwari/fountain-codes
+    
+TODO: Currently there is no check as to whether the data that has been received has not been corrupted or damaged.
+While this solution is tolerant to data LOSS, it is not tolerant to data ERRORS. Potential solutions could involve
+making each data segment self-correcting with one of many such algorithms.
 """
 
 
@@ -67,7 +71,6 @@ def decode(encoded_data):
                 continue
 
             if len(bundle["components"]) == 1:
-                solved += 1
                 component_index = bundle["components"][0]
                 encoded_data[i] = None
 
@@ -88,6 +91,7 @@ def decode(encoded_data):
                 if cur_decode < 0:
                     cur_value = bundle["value"]
                     decoded_data[component_index] = cur_value
+
                     solved += 1
 
                     cur_component_occurrences = component_occurrences[component_index]
